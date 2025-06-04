@@ -4,7 +4,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Drawing.Processing;
 
-namespace TecnicasPreProcessamentoDeImagens;
+namespace TecnicasPreProcessamentoDeImagens.Tecnicas;
 
 public class RealcadorComBaseEmSubtracao
 {

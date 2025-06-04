@@ -1,7 +1,7 @@
 ﻿using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using TecnicasPreProcessamentoDeImagens;
+using TecnicasPreProcessamentoDeImagens.Tecnicas;
 
 internal class Program
 {
