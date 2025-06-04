@@ -1,0 +1,69 @@
+## .NET geral ##
+bin/
+obj/
+out/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Arquivos gerados por publicação ##
+*.PublishProfiles/
+*.pubxml
+*.publishsettings
+
+## Build local ##
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+## Configurações locais ##
+.vs/
+.vscode/
+*.code-workspace
+
+## Pacotes ##
+*.nupkg
+*.snupkg
+*.nuspec
+packages/
+*.Symbols.nupkg
+
+## Logs ##
+*.log
+
+## Sistema ##
+Thumbs.db
+Desktop.ini
+
+## Rider e JetBrains ##
+.idea/
+*.sln.iml
+
+## Arquivos temporários ##
+*.tmp
+*.temp
+~$*
+
+## Arquivos de backup do Visual Studio ##
+*.bak
+
+## Diretórios gerados por testes ##
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+
+## Dotnet CLI #
+*.dotCover
+
+## Cache ##
+.cache/
+
+## Outros arquivos opcionais ##
+*.vspscc
+*.vssscc
+_ReSharper.*
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
