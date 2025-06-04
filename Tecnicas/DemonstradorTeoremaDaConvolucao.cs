@@ -1,7 +1,10 @@
 using System.Diagnostics;
 using System.Numerics;
+using MathNet.Numerics;
 using MathNet.Numerics.IntegralTransforms;
+using MathNet.Numerics.LinearAlgebra;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
@@ -11,14 +14,13 @@ public class DemonstradorTeoremaDaConvolucao
 {
     public static void ExecutarDemonstracaoDeGanho()
     {
-        Console.WriteLine("Insira o caminho da imagem:"); 
+        Console.WriteLine("Insira o caminho da imagem:");
         string? imagePath = Console.ReadLine();
         if (string.IsNullOrEmpty(imagePath))
         {
             Console.WriteLine("Nenhum imagem foi encontrada...");
             return;
         }
-
 
         Console.WriteLine("--- Comparação de Tempo ---");
 
@@ -28,12 +30,12 @@ public class DemonstradorTeoremaDaConvolucao
         long tempoFrequencia = AplicarFiltroFrequencia(imagePath);
         Console.WriteLine($"Tempo (Domínio da Frequência): {tempoFrequencia} ms");
     }
-    
+
     private static long AplicarFiltroEspacial(string imagePath)
     {
-        var image = Image.Load<Rgba32>(imagePath);
+        var image = Image.Load<L8>(imagePath);
         var sw = Stopwatch.StartNew();
-        var resultado = image.Clone(ctx => ctx.GaussianBlur(3f));
+        var resultado = image.Clone(ctx => ctx.GaussianBlur(6f));
         sw.Stop();
         resultado.Save("resultado_espacial.png");
         return sw.ElapsedMilliseconds;
@@ -62,27 +64,27 @@ public class DemonstradorTeoremaDaConvolucao
             }
         });
 
-        // Aplicar FFT
+        // FFT da imagem
         Complex[,] freq = new Complex[height, width];
         for (int y = 0; y < height; y++)
-        {
-            for (int x = 0; x < width; x++)
-                freq[y, x] = new Complex(gray[y, x], 0);
-        }
+        for (int x = 0; x < width; x++)
+            freq[y, x] = new Complex(gray[y, x], 0);
 
         FFT2(freq);
 
-        // Criar kernel gaussiano e aplicar FFT nele
-        double[,] kernel = GerarKernelGaussiano(width, height, sigma: 3);
+        // Gerar e aplicar FFT ao kernel gaussiano (com shift)
+        double[,] kernel = GerarKernelGaussiano(width, height, sigma: 6);
+        FFTShift(kernel); // importante!
         Complex[,] kernelFreq = new Complex[height, width];
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
                 kernelFreq[y, x] = new Complex(kernel[y, x], 0);
         }
+
         FFT2(kernelFreq);
 
-        // Multiplicar ponto a ponto
+        // Multiplicação ponto a ponto (convolução no domínio da frequência)
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
@@ -92,7 +94,28 @@ public class DemonstradorTeoremaDaConvolucao
         // Inversa
         InverseFFT2(freq);
 
-        // Normalizar e salvar
+        // Normalizar pela dimensão (MathNet não normaliza automaticamente)
+        double scale = width * height;
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+                freq[y, x] /= scale;
+        }
+
+        // Encontrar o menor e maior valor para normalização
+        double min = double.MaxValue;
+        double max = double.MinValue;
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                double valor = freq[y, x].Real;
+                if (valor < min) min = valor;
+                if (valor > max) max = valor;
+            }
+        }
+
+        // Criar imagem final com normalização 0–255
         var resultado = new Image<L8>(width, height);
         resultado.ProcessPixelRows(accessor =>
         {
@@ -102,8 +125,8 @@ public class DemonstradorTeoremaDaConvolucao
                 for (int x = 0; x < width; x++)
                 {
                     double valor = freq[y, x].Real;
-                    valor = Math.Clamp(valor, 0, 255);
-                    row[x] = new L8((byte)valor);
+                    valor = (valor - min) / (max - min) * 255.0;
+                    row[x] = new L8((byte)Math.Clamp(valor, 0, 255));
                 }
             }
         });
@@ -132,6 +155,27 @@ public class DemonstradorTeoremaDaConvolucao
 
         return kernel;
     }
+
+    private static void FFTShift(double[,] data)
+    {
+        int height = data.GetLength(0);
+        int width = data.GetLength(1);
+
+        for (int y = 0; y < height / 2; y++)
+        {
+            for (int x = 0; x < width / 2; x++)
+            {
+                // Coordenadas opostas
+                int yOpp = y + height / 2;
+                int xOpp = x + width / 2;
+
+                // Troca quadrantes
+                (data[y, x], data[yOpp, xOpp]) = (data[yOpp, xOpp], data[y, x]);
+                (data[yOpp, x], data[y, xOpp]) = (data[y, xOpp], data[yOpp, x]);
+            }
+        }
+    }
+
 
     private static void FFT2(Complex[,] data)
     {
