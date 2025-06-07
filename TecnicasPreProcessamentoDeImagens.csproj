@@ -13,4 +13,8 @@
       <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="2.1.6" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="executaveis\" />
+    </ItemGroup>
+
 </Project>

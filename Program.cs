@@ -5,7 +5,6 @@ internal class Program
     public static void Main(string[] args)
     {
         Console.WriteLine();
-        Console.WriteLine();
         Console.WriteLine("As técnicas possíveis são:");
         Console.WriteLine("(1) - Transformação de tons de cinza baseado em clusterização");
         Console.WriteLine("(2) - Subtração entre duas imagens para realçar a área de um corpo presente em uma imagem");
